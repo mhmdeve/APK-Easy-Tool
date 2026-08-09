@@ -412,24 +412,35 @@ namespace APKEasyTool
 
         internal void viewSidedLog()
         {
-            if (main.logOutputForm != null)
+            // If the form was disposed, create a new instance.
+            if (main.logOutputForm == null ||
+                main.logOutputForm.IsDisposed ||
+                main.logOutputForm.Disposing)
             {
-                if (main.logOutputForm.Visible)
-                {
-                    MainClass.isSidedLogOpened = false;
-                    string ss = main.viewLogSidedBtn.Text.Replace("<<", ">>");
-                    main.viewLogSidedBtn.Text = ss;
-                    main.logOutputForm.Hide();
-                    return;
-                }
-                MainClass.isSidedLogOpened = true;
-
-                main.logOutputForm.StartPosition = FormStartPosition.Manual;
-                main.logOutputForm.Top = main.Location.Y;
-                main.logOutputForm.Left = main.Location.X + main.Width;
-                main.logOutputForm.Show();
-                main.viewLogSidedBtn.Text = main.viewLogSidedBtn.Text.Replace(">>", "<<");
+                main.logOutputForm = new LogOutputForm(main);
             }
+
+            if (main.logOutputForm.Visible)
+            {
+                MainClass.isSidedLogOpened = false;
+
+                string ss = main.viewLogSidedBtn.Text.Replace("<<", ">>");
+                main.viewLogSidedBtn.Text = ss;
+
+                main.logOutputForm.Hide();
+                return;
+            }
+
+            MainClass.isSidedLogOpened = true;
+
+            main.logOutputForm.StartPosition = FormStartPosition.Manual;
+            main.logOutputForm.Top = main.Location.Y;
+            main.logOutputForm.Left = main.Location.X + main.Width;
+
+            main.logOutputForm.Show();
+
+            main.viewLogSidedBtn.Text =
+                main.viewLogSidedBtn.Text.Replace(">>", "<<");
         }
 
         //select apk
