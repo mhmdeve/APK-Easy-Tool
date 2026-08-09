@@ -1,15 +1,18 @@
 name: Build APK Easy Tool
 
 on:
-  push:
-    branches:
-      - master
-    tags:
-      - 'v*'
-  pull_request:
-    branches:
-      - master
   workflow_dispatch:
+    inputs:
+      create_release:
+        description: 'Create a GitHub release from this build'
+        required: true
+        default: false
+        type: boolean
+      tag:
+        description: 'Release tag (required when creating a release)'
+        required: false
+        default: ''
+        type: string
 
 permissions:
   contents: write
@@ -40,79 +43,33 @@ jobs:
         run: |
           $apktoolDir = Join-Path $env:GITHUB_WORKSPACE 'Resources\Apktool'
           New-Item -ItemType Directory -Force -Path $apktoolDir | Out-Null
-
-          # Keep the release package deterministic: ship the current 2.x and 3.x lines.
           Remove-Item (Join-Path $apktoolDir '*.jar') -Force -ErrorAction SilentlyContinue
           Remove-Item (Join-Path $apktoolDir '*.bin') -Force -ErrorAction SilentlyContinue
-
           $apktool2 = Join-Path $apktoolDir 'apktool_2.12.1.jar'
           $apktool3Real = Join-Path $apktoolDir 'apktool_3.0.3.bin'
           $apktool3Wrapper = Join-Path $apktoolDir 'apktool_3.0.3.jar'
-
-          Invoke-WebRequest `
-            -Uri 'https://github.com/iBotPeaches/Apktool/releases/download/v2.12.1/apktool_2.12.1.jar' `
-            -OutFile $apktool2
-
-          Invoke-WebRequest `
-            -Uri 'https://github.com/iBotPeaches/Apktool/releases/download/v3.0.3/apktool_3.0.3.jar' `
-            -OutFile $apktool3Real
-
-          if (-not (Test-Path $apktool2)) {
-            Write-Error 'Apktool 2.12.1 was not downloaded.'
-            exit 1
-          }
-          if (-not (Test-Path $apktool3Real)) {
-            Write-Error 'Apktool 3.0.3 was not downloaded.'
-            exit 1
-          }
-
-          # Verify the upstream 3.0.3 release before wrapping it.
+          Invoke-WebRequest -Uri 'https://github.com/iBotPeaches/Apktool/releases/download/v2.12.1/apktool_2.12.1.jar' -OutFile $apktool2
+          Invoke-WebRequest -Uri 'https://github.com/iBotPeaches/Apktool/releases/download/v3.0.3/apktool_3.0.3.jar' -OutFile $apktool3Real
+          if (-not (Test-Path $apktool2)) { Write-Error 'Apktool 2.12.1 was not downloaded.'; exit 1 }
+          if (-not (Test-Path $apktool3Real)) { Write-Error 'Apktool 3.0.3 was not downloaded.'; exit 1 }
           $expectedSha256 = 'dbf930b076c6b9be08d57c449cacefc3bdd6b71ebd59b3066fc0e1f5b14f9423'
           $actualSha256 = (Get-FileHash $apktool3Real -Algorithm SHA256).Hash.ToLowerInvariant()
-          if ($actualSha256 -ne $expectedSha256) {
-            Write-Error "Apktool 3.0.3 SHA-256 mismatch. Expected $expectedSha256, got $actualSha256"
-            exit 1
-          }
-
-          # APK Easy Tool currently emits the Apktool 2.x command-line syntax.
-          # Build a tiny launcher that translates those legacy flags to Apktool 3.x.
+          if ($actualSha256 -ne $expectedSha256) { Write-Error "Apktool 3.0.3 SHA-256 mismatch. Expected $expectedSha256, got $actualSha256"; exit 1 }
           $wrapperClassDir = Join-Path $env:RUNNER_TEMP 'apktool3-wrapper'
           New-Item -ItemType Directory -Force -Path $wrapperClassDir | Out-Null
           javac -d $wrapperClassDir build\Apktool3Compat.java
-          if ($LASTEXITCODE -ne 0) {
-            Write-Error 'Failed to compile the Apktool 3.x compatibility launcher.'
-            exit 1
-          }
-
+          if ($LASTEXITCODE -ne 0) { Write-Error 'Failed to compile the Apktool 3.x compatibility launcher.'; exit 1 }
           Push-Location $wrapperClassDir
           jar cfe $apktool3Wrapper Apktool3Compat Apktool3Compat.class
           $jarExit = $LASTEXITCODE
           Pop-Location
-          if ($jarExit -ne 0 -or -not (Test-Path $apktool3Wrapper)) {
-            Write-Error 'Failed to package the Apktool 3.x compatibility launcher.'
-            exit 1
-          }
-
-          # Smoke-test both versions before MSBuild.
+          if ($jarExit -ne 0 -or -not (Test-Path $apktool3Wrapper)) { Write-Error 'Failed to package the Apktool 3.x compatibility launcher.'; exit 1 }
           java -jar $apktool2 --version
-          if ($LASTEXITCODE -ne 0) {
-            Write-Error 'Apktool 2.12.1 failed its smoke test.'
-            exit 1
-          }
+          if ($LASTEXITCODE -ne 0) { Write-Error 'Apktool 2.12.1 failed its smoke test.'; exit 1 }
           java -jar $apktool3Real --version
-          if ($LASTEXITCODE -ne 0) {
-            Write-Error 'Apktool 3.0.3 failed its smoke test.'
-            exit 1
-          }
+          if ($LASTEXITCODE -ne 0) { Write-Error 'Apktool 3.0.3 failed its smoke test.'; exit 1 }
           java -jar $apktool3Wrapper --version
-          if ($LASTEXITCODE -ne 0) {
-            Write-Error 'Apktool 3.0.3 compatibility launcher failed its smoke test.'
-            exit 1
-          }
-
-          Write-Host 'Prepared:'
-          Get-Item $apktool2, $apktool3Real, $apktool3Wrapper |
-            Select-Object FullName, Length, LastWriteTime
+          if ($LASTEXITCODE -ne 0) { Write-Error 'Apktool 3.0.3 compatibility launcher failed its smoke test.'; exit 1 }
 
       - name: Restore NuGet packages
         run: nuget restore APKEasyTool.sln
@@ -120,9 +77,7 @@ jobs:
       - name: Build Release
         shell: pwsh
         run: >-
-          msbuild APKEasyTool.sln
-          /m
-          /t:Build
+          msbuild APKEasyTool.sln /m /t:Build
           /p:Configuration=Release
           /p:Platform="Any CPU"
           /p:Win32Resource="${{ github.workspace }}\APKEasyTool\Resource.res"
@@ -133,59 +88,19 @@ jobs:
           $output = Join-Path $env:GITHUB_WORKSPACE 'APKEasyTool/bin/Release'
           $exe = Join-Path $output 'apkeasytool.exe'
           $apktoolOutput = Join-Path $output 'Apktool'
-
-          if (-not (Test-Path $exe)) {
-            Write-Error "Build output not found: $exe"
-            exit 1
-          }
-
-          if (-not (Test-Path $apktoolOutput)) {
-            Write-Error "Apktool output directory not found: $apktoolOutput"
-            Get-ChildItem $output -Recurse | Select-Object FullName
-            exit 1
-          }
-
-          # The project pre-build copies Resources into the output root. Make the
-          # intended runtime directory explicit so future project changes cannot
-          # silently drop the Apktool versions from the distributable.
+          if (-not (Test-Path $exe)) { Write-Error "Build output not found: $exe"; exit 1 }
           $sourceApktool = Join-Path $env:GITHUB_WORKSPACE 'Resources/Apktool'
           New-Item -ItemType Directory -Force -Path $apktoolOutput | Out-Null
           Copy-Item (Join-Path $sourceApktool 'apktool_2.12.1.jar') $apktoolOutput -Force
           Copy-Item (Join-Path $sourceApktool 'apktool_3.0.3.jar') $apktoolOutput -Force
           Copy-Item (Join-Path $sourceApktool 'apktool_3.0.3.bin') $apktoolOutput -Force
-
-          $required = @(
-            (Join-Path $apktoolOutput 'apktool_2.12.1.jar'),
-            (Join-Path $apktoolOutput 'apktool_3.0.3.jar'),
-            (Join-Path $apktoolOutput 'apktool_3.0.3.bin')
-          )
-
-          foreach ($file in $required) {
-            if (-not (Test-Path $file)) {
-              Write-Error "Required bundled file missing: $file"
-              exit 1
-            }
-          }
-
-          Write-Host "Built: $exe"
-          Write-Host 'Bundled Apktool versions:'
-          Get-ChildItem $apktoolOutput | Select-Object Name, Length, LastWriteTime
-
-          # Verify the exact jar files that the application will enumerate.
-          $jars = Get-ChildItem $apktoolOutput -Filter '*.jar' | Select-Object -ExpandProperty Name
-          if ($jars -notcontains 'apktool_2.12.1.jar' -or $jars -notcontains 'apktool_3.0.3.jar') {
-            Write-Error 'Expected Apktool 2.x and 3.x JARs are not both present.'
-            exit 1
-          }
+          foreach ($file in @('apktool_2.12.1.jar','apktool_3.0.3.jar','apktool_3.0.3.bin')) { if (-not (Test-Path (Join-Path $apktoolOutput $file))) { Write-Error "Required bundled file missing: $file"; exit 1 } }
 
       - name: Package ZIP
         shell: pwsh
         run: |
           New-Item -ItemType Directory -Force -Path artifacts | Out-Null
-          $source = 'APKEasyTool/bin/Release'
-          $zip = 'artifacts/APK-Easy-Tool-v1.61-AnyCPU.zip'
-          Compress-Archive -Path "$source/*" -DestinationPath $zip -Force
-          Write-Host "Created $zip"
+          Compress-Archive -Path 'APKEasyTool/bin/Release/*' -DestinationPath 'artifacts/APK-Easy-Tool-v1.61-AnyCPU.zip' -Force
 
       - name: Upload build artifact
         uses: actions/upload-artifact@v4
@@ -197,19 +112,18 @@ jobs:
   release:
     name: Create GitHub Release
     needs: build
-    if: startsWith(github.ref, 'refs/tags/v')
+    if: inputs.create_release == true && inputs.tag != ''
     runs-on: windows-latest
-
     steps:
       - name: Download build artifact
         uses: actions/download-artifact@v4
         with:
           name: APK-Easy-Tool-v1.61-AnyCPU
           path: release-assets
-
       - name: Create release
         uses: softprops/action-gh-release@v2
         with:
+          tag_name: ${{ inputs.tag }}
           generate_release_notes: true
           files: release-assets/*.zip
           fail_on_unmatched_files: true
