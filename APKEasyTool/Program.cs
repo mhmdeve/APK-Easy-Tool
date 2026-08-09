@@ -2,9 +2,7 @@
 using System.Diagnostics;
 using System.IO;
 using System.Net;
-using System.Reflection;
 using System.Runtime.InteropServices;
-using System.Threading;
 using System.Windows.Forms;
 using System.Xml.Serialization;
 
@@ -37,14 +35,15 @@ namespace APKEasyTool
             Application.EnableVisualStyles();
             Application.SetCompatibleTextRenderingDefault(false);
 
-            // Load language/configuration.
             LoadConfig();
             Lang.LoadStr();
             ServicePointManager.SecurityProtocol = SecurityProtocolType.Tls12;
 
             if (ResourcesExist())
             {
-                Application.Run(ModernUi.Apply(new MainForm()));
+                MainForm mainForm = new MainForm();
+                ModernUi.Apply(mainForm);
+                Application.Run(mainForm);
             }
             else
             {
@@ -52,7 +51,7 @@ namespace APKEasyTool
             }
         }
 
-        [System.Runtime.InteropServices.DllImport("user32.dll")]
+        [DllImport("user32.dll")]
         private static extern bool SetProcessDPIAware();
 
         static void LoadConfig()
@@ -62,10 +61,15 @@ namespace APKEasyTool
                 if (File.Exists(Variables.GetPath() + "config.xml"))
                 {
                     XmlSerializer xs = new XmlSerializer(typeof(APKEasyTool));
-                    FileStream read = new FileStream(Variables.GetPath() + "config.xml", FileMode.Open, FileAccess.Read, FileShare.Read);
-                    APKEasyTool info = (APKEasyTool)xs.Deserialize(read);
-                    Lang.LoadLocalization(Variables.RealPath("Language\\" + info.Language));
-                    read.Close();
+                    using (FileStream read = new FileStream(
+                        Variables.GetPath() + "config.xml",
+                        FileMode.Open,
+                        FileAccess.Read,
+                        FileShare.Read))
+                    {
+                        APKEasyTool info = (APKEasyTool)xs.Deserialize(read);
+                        Lang.LoadLocalization(Variables.RealPath("Language\\" + info.Language));
+                    }
                 }
             }
             catch (Exception ex)
