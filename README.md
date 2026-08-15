@@ -17,21 +17,6 @@ Typical workflows include:
 - Manage APKtool versions
 - Work with different APKtool generations from one application
 
-## Version 1.61
-
-This repository currently targets **APK Easy Tool v1.61**.
-
-### APKtool support
-
-Version 1.61 includes compatibility for both major APKtool generations:
-
-- **APKtool 2.12.1** — APKtool 2.x compatibility
-- **APKtool 3.0.3** — APKtool 3.x compatibility
-
-APK Easy Tool historically uses command-line conventions from APKtool 2.x. APKtool 3.x changed and removed several command-line options, so this release includes a compatibility launcher that translates the legacy options used by APK Easy Tool into their APKtool 3.x equivalents where applicable.
-
-The bundled versions are tested during the GitHub Actions build before the application is packaged.
-
 ## Requirements
 
 ### Runtime
