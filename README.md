@@ -17,13 +17,13 @@ Typical workflows include:
 - Manage APKtool versions
 - Work with different APKtool generations from one application
 
-## Version 1.61
+## Version 1.62
 
-This repository currently targets **APK Easy Tool v1.61**.
+This repository currently targets **APK Easy Tool v1.62**.
 
 ### APKtool support
 
-Version 1.61 includes compatibility for both major APKtool generations:
+Version 1.62 includes compatibility for both major APKtool generations:
 
 - **APKtool 2.12.1** — APKtool 2.x compatibility
 - **APKtool 3.0.3** — APKtool 3.x compatibility
