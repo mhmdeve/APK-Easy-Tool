@@ -1,0 +1,4 @@
+APK Easy Tool v1.62
+
+Release tag: v1.62
+Commit: bf9766dd319019ad0b76d7708fce856523d43dac
