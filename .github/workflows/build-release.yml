@@ -41,7 +41,7 @@ jobs:
       - name: Prepare Apktool 2.x and 3.x
         shell: pwsh
         run: |
-          $apktoolDir = Join-Path $env:GITHUB_WORKSPACE 'Resources\Apktool'
+          $apktoolDir = Join-Path $env:GITHUB_WORKSPACE 'Resources\\Apktool'
           New-Item -ItemType Directory -Force -Path $apktoolDir | Out-Null
           Remove-Item (Join-Path $apktoolDir '*.jar') -Force -ErrorAction SilentlyContinue
           Remove-Item (Join-Path $apktoolDir '*.bin') -Force -ErrorAction SilentlyContinue
@@ -57,7 +57,7 @@ jobs:
           if ($actualSha256 -ne $expectedSha256) { Write-Error "Apktool 3.0.3 SHA-256 mismatch. Expected $expectedSha256, got $actualSha256"; exit 1 }
           $wrapperClassDir = Join-Path $env:RUNNER_TEMP 'apktool3-wrapper'
           New-Item -ItemType Directory -Force -Path $wrapperClassDir | Out-Null
-          javac -d $wrapperClassDir build\Apktool3Compat.java
+          javac -d $wrapperClassDir build\\Apktool3Compat.java
           if ($LASTEXITCODE -ne 0) { Write-Error 'Failed to compile the Apktool 3.x compatibility launcher.'; exit 1 }
           Push-Location $wrapperClassDir
           jar cfe $apktool3Wrapper Apktool3Compat Apktool3Compat.class
@@ -80,7 +80,7 @@ jobs:
           msbuild APKEasyTool.sln /m /t:Build
           /p:Configuration=Release
           /p:Platform="Any CPU"
-          /p:Win32Resource="${{ github.workspace }}\APKEasyTool\Resource.res"
+          /p:Win32Resource="${{ github.workspace }}\\APKEasyTool\\Resource.res"
 
       - name: Verify executable and bundled Apktool versions
         shell: pwsh
@@ -100,13 +100,13 @@ jobs:
         shell: pwsh
         run: |
           New-Item -ItemType Directory -Force -Path artifacts | Out-Null
-          Compress-Archive -Path 'APKEasyTool/bin/Release/*' -DestinationPath 'artifacts/APK-Easy-Tool-v1.61-AnyCPU.zip' -Force
+          Compress-Archive -Path 'APKEasyTool/bin/Release/*' -DestinationPath 'artifacts/APK-Easy-Tool-v1.62-AnyCPU.zip' -Force
 
       - name: Upload build artifact
         uses: actions/upload-artifact@v4
         with:
-          name: APK-Easy-Tool-v1.61-AnyCPU
-          path: artifacts/APK-Easy-Tool-v1.61-AnyCPU.zip
+          name: APK-Easy-Tool-v1.62-AnyCPU
+          path: artifacts/APK-Easy-Tool-v1.62-AnyCPU.zip
           if-no-files-found: error
 
   release:
@@ -118,7 +118,7 @@ jobs:
       - name: Download build artifact
         uses: actions/download-artifact@v4
         with:
-          name: APK-Easy-Tool-v1.61-AnyCPU
+          name: APK-Easy-Tool-v1.62-AnyCPU
           path: release-assets
       - name: Create release
         uses: softprops/action-gh-release@v2
