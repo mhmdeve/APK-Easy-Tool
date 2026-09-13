@@ -66,22 +66,22 @@ namespace APKEasyTool
                 if (attr.HasFlag(FileAttributes.Directory))
                     e.CheckDragEnter();
                 else
-                    e.CheckDragEnter(".apk", ".jar");
+                    e.CheckDragEnter(".apk", ".apks", ".jar");
             });
             tabMain.DragOver += new DragEventHandler((sender, e) => {
                 string[] files = e.GetFilesDrop();
                 FileAttributes attr = File.GetAttributes(files[0]);
                 if (attr.HasFlag(FileAttributes.Directory))
                     tabMain.BackColor = Color.PowderBlue;
-                else if (e.CheckDragOver(".apk", ".jar"))
+                else if (e.CheckDragOver(".apk", ".apks", ".jar"))
                     tabMain.BackColor = Color.PowderBlue;
             });
 
             tabMain.DragDrop += new DragEventHandler((sender, e) => { DragDropUtils.tab1_DragDrop(this, sender, e); });
 
             decApkBtn.DragLeave += new EventHandler((sender, e) => decApkBtn.BackColor = Color.Transparent);
-            decApkBtn.DragEnter += new DragEventHandler((sender, e) => e.CheckDragEnter(".apk", ".jar"));
-            decApkBtn.DragOver += new DragEventHandler((sender, e) => { if (e.CheckDragOver(".apk", ".jar")) decApkBtn.BackColor = Color.PowderBlue; });
+            decApkBtn.DragEnter += new DragEventHandler((sender, e) => e.CheckDragEnter(".apk", ".apks", ".jar"));
+            decApkBtn.DragOver += new DragEventHandler((sender, e) => { if (e.CheckDragOver(".apk", ".apks", ".jar")) decApkBtn.BackColor = Color.PowderBlue; });
             decApkBtn.DragDrop += new DragEventHandler((sender, e) => { DragDropUtils.decApkBtn_DragDrop(this, sender, e); });
             decApkBtn.Click += new EventHandler((sender, e) => { tabMainInstance.decApkBtn_Click(sender, e); });
 
