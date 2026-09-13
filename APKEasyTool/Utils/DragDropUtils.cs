@@ -65,7 +65,7 @@ namespace APKEasyTool
             foreach (var file in files)
             {
                 var ext = Path.GetExtension(file);
-                if (ext.Equals(".apk", StringComparison.CurrentCultureIgnoreCase))
+                if (ext.Equals(".apk", StringComparison.CurrentCultureIgnoreCase) || ext.Equals(".apks", StringComparison.CurrentCultureIgnoreCase))
                 {
                     main.pathOfApk.Text = file.ToString();
                     main.decNameTextBox.Text = Path.GetFileNameWithoutExtension(main.pathOfApk.Text);
@@ -139,7 +139,7 @@ namespace APKEasyTool
             foreach (var file in files)
             {
                 var ext = Path.GetExtension(file);
-                if (ext.Equals(".apk", StringComparison.CurrentCultureIgnoreCase) || ext.Equals(".jar", StringComparison.CurrentCultureIgnoreCase))
+                if (ext.Equals(".apk", StringComparison.CurrentCultureIgnoreCase) || ext.Equals(".apks", StringComparison.CurrentCultureIgnoreCase) || ext.Equals(".jar", StringComparison.CurrentCultureIgnoreCase))
                 {
                     if (main.apkToolComboBox.Text == "")
                     {
@@ -147,7 +147,15 @@ namespace APKEasyTool
                         main.tMain.SelectedIndex = 4;
                         return;
                     }
-                    await Apktool.Decompile(file, Path.Combine(Path.GetDirectoryName(file), Path.GetFileNameWithoutExtension(file)));
+                    if (ext.Equals(".apks", StringComparison.CurrentCultureIgnoreCase))
+                    {
+                        string extracted = Path.Combine(Path.GetDirectoryName(file), Path.GetFileNameWithoutExtension(file) + "_apks");
+                        await Apktool.ExtractApks(file, extracted);
+                    }
+                    else
+                    {
+                        await Apktool.Decompile(file, Path.Combine(Path.GetDirectoryName(file), Path.GetFileNameWithoutExtension(file)));
+                    }
                 }
                 if (ext.Equals(".apk", StringComparison.CurrentCultureIgnoreCase) || ext.Equals(".jar", StringComparison.CurrentCultureIgnoreCase))
                 {
@@ -246,6 +254,10 @@ namespace APKEasyTool
                 if (ext.Equals(".apk", StringComparison.CurrentCultureIgnoreCase))
                 {
                     await Apktool.InstallApk(file);
+                }
+                else if (ext.Equals(".apks", StringComparison.CurrentCultureIgnoreCase))
+                {
+                    await Apktool.InstallApks(file);
                 }
             }
         }
