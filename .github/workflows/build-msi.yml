@@ -1,0 +1,69 @@
+name: Build APK Easy Tool MSI
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  build-msi:
+    runs-on: windows-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: Setup MSBuild
+        uses: microsoft/setup-msbuild@v2
+      - name: Setup NuGet
+        uses: NuGet/setup-nuget@v2
+      - name: Setup Java 17
+        uses: actions/setup-java@v5
+        with:
+          distribution: temurin
+          java-version: '17'
+      - name: Prepare Apktool
+        shell: pwsh
+        run: |
+          $d = Join-Path $env:GITHUB_WORKSPACE 'Resources\Apktool'
+          New-Item -ItemType Directory -Force -Path $d | Out-Null
+          Remove-Item (Join-Path $d '*.jar') -Force -ErrorAction SilentlyContinue
+          Remove-Item (Join-Path $d '*.bin') -Force -ErrorAction SilentlyContinue
+          Invoke-WebRequest 'https://github.com/iBotPeaches/Apktool/releases/download/v2.12.1/apktool_2.12.1.jar' -OutFile (Join-Path $d 'apktool_2.12.1.jar')
+          Invoke-WebRequest 'https://github.com/iBotPeaches/Apktool/releases/download/v3.0.3/apktool_3.0.3.jar' -OutFile (Join-Path $d 'apktool_3.0.3.bin')
+          $actual = (Get-FileHash (Join-Path $d 'apktool_3.0.3.bin') -Algorithm SHA256).Hash.ToLowerInvariant()
+          if ($actual -ne 'dbf930b076c6b9be08d57c449cacefc3bdd6b71ebd59b3066fc0e1f5b14f9423') { throw 'Apktool 3.0.3 SHA-256 mismatch.' }
+          javac -d "$env:RUNNER_TEMP\apktool3" build\Apktool3Compat.java
+          Push-Location "$env:RUNNER_TEMP\apktool3"
+          jar cfe (Join-Path $d 'apktool_3.0.3.jar') Apktool3Compat Apktool3Compat.class
+          Pop-Location
+      - name: Restore NuGet packages
+        run: nuget restore APKEasyTool.sln
+      - name: Build Release
+        shell: pwsh
+        run: msbuild APKEasyTool.sln /m /t:Build /p:Configuration=Release /p:Platform="Any CPU" /p:Win32Resource="${{ github.workspace }}\APKEasyTool\Resource.res"
+      - name: Prepare payload
+        shell: pwsh
+        run: |
+          $out = Join-Path $env:GITHUB_WORKSPACE 'APKEasyTool\bin\Release'
+          if (-not (Test-Path (Join-Path $out 'apkeasytool.exe'))) { throw 'Build output not found.' }
+          $dst = Join-Path $out 'Apktool'
+          New-Item -ItemType Directory -Force -Path $dst | Out-Null
+          $src = Join-Path $env:GITHUB_WORKSPACE 'Resources\Apktool'
+          Copy-Item (Join-Path $src 'apktool_2.12.1.jar') $dst -Force
+          Copy-Item (Join-Path $src 'apktool_3.0.3.jar') $dst -Force
+          Copy-Item (Join-Path $src 'apktool_3.0.3.bin') $dst -Force
+      - name: Install WiX
+        shell: pwsh
+        run: dotnet tool install --global wix --version 6.0.2
+      - name: Build MSI
+        shell: pwsh
+        run: |
+          $env:PATH = "$env:USERPROFILE\.dotnet\tools;$env:PATH"
+          New-Item -ItemType Directory -Force -Path artifacts | Out-Null
+          wix build installer\APK-Easy-Tool.wxs -dSourceDir="${{ github.workspace }}\APKEasyTool\bin\Release" -o artifacts\APK-Easy-Tool-v1.62-AnyCPU.msi
+      - name: Upload MSI
+        uses: actions/upload-artifact@v4
+        with:
+          name: APK-Easy-Tool-MSI
+          path: artifacts/APK-Easy-Tool-v1.62-AnyCPU.msi
+          if-no-files-found: error
