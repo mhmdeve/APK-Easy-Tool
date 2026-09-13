@@ -293,6 +293,83 @@ namespace APKEasyTool
             main.EnableForm();
         }
 
+        public static async Task ExtractApks(string input, string output)
+        {
+            processType = ProcessType.SevenZip;
+            main.DisableForm();
+            main.LogOutput("---------------------------\n");
+            main.LogOutput("Extracting APKS bundle " + Lang.CANCEL_ESC, MainForm.Type.Info);
+
+            if (Directory.Exists(output))
+                Directory.Delete(output, true);
+            Directory.CreateDirectory(output);
+
+            string command = "x \"" + input + "\" -o\"" + output + "\" -aoa";
+            int exitCode = 0;
+            await Task.Factory.StartNew(() =>
+            {
+                CMD.StartProgram(Variables.RealPath("Resources\\7z.exe"), command, true, out exitCode);
+            });
+
+            if (exitCode == 0)
+                main.LogOutput("APKS extraction completed.", MainForm.Type.Info);
+            else
+                main.LogOutput("APKS extraction failed.", MainForm.Type.Error);
+
+            main.EnableForm();
+        }
+
+        public static async Task InstallApks(string input)
+        {
+            processType = ProcessType.Adb;
+            main.DisableForm();
+            main.LogOutput("---------------------------\n");
+            main.LogOutput("Installing APKS bundle " + Lang.CANCEL_ESC, MainForm.Type.Info);
+
+            string temp = Path.Combine(Variables.TempPath, "apks_install_" + Guid.NewGuid().ToString("N"));
+            Directory.CreateDirectory(temp);
+
+            string extractCommand = "x \"" + input + "\" -o\"" + temp + "\" -aoa";
+            int extractExitCode = 0;
+            await Task.Factory.StartNew(() =>
+            {
+                CMD.StartProgram(Variables.RealPath("Resources\\7z.exe"), extractCommand, true, out extractExitCode);
+            });
+
+            if (extractExitCode != 0)
+            {
+                main.LogOutput("Failed to extract APKS bundle.", MainForm.Type.Error);
+                try { if (Directory.Exists(temp)) Directory.Delete(temp, true); } catch { }
+                main.EnableForm();
+                return;
+            }
+
+            string[] apks = Directory.GetFiles(temp, "*.apk", SearchOption.AllDirectories);
+            if (apks.Length == 0)
+            {
+                main.LogOutput("No APK files found in APKS bundle.", MainForm.Type.Error);
+                try { if (Directory.Exists(temp)) Directory.Delete(temp, true); } catch { }
+                main.EnableForm();
+                return;
+            }
+
+            string apkArgs = string.Join(" ", Array.ConvertAll(apks, a => "\"" + a + "\""));
+            string command = "install-multiple -r " + apkArgs;
+            int installExitCode = 0;
+            await Task.Factory.StartNew(() =>
+            {
+                CMD.StartProgram(Variables.RealPath("Resources\\adb.exe"), command, true, out installExitCode);
+            });
+
+            if (installExitCode == 0)
+                main.LogOutput("\n" + Lang.INS_SUCCESS_MBOX, MainForm.Type.Info);
+            else
+                main.LogOutput("\n" + Lang.INS_FAIL_MBOX, MainForm.Type.Error);
+
+            try { if (Directory.Exists(temp)) Directory.Delete(temp, true); } catch { }
+            main.EnableForm();
+        }
+
         public static async Task ZipAlign(string input, string output)
         {
             processType = ProcessType.Zipalign;
