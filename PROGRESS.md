@@ -111,3 +111,10 @@ Proposed implementation:
 - [x] Disable workflow actions while a process is running to prevent overlapping operations.
 - [x] Change Linux CI to manual-only; no push or pull-request trigger remains.
 - [ ] Run manual GitHub Actions build and test; run-time verification on a Linux desktop is still required.
+
+
+## CI failure investigation (run #21)
+
+- [x] Identified that application build succeeded but the argument-preservation unit test failed because line-based stream capture appended a trailing newline to stdout.
+- [x] Normalize trailing line terminators from captured process output while continuing to stream each output line live.
+- [ ] Re-run manual workflow and confirm tests, publish and Debian packaging pass.

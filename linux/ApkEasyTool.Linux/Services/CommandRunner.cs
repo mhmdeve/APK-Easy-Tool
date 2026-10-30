@@ -93,6 +93,6 @@ public sealed class CommandRunner
             output?.Report($"{label}: {line}");
         }
 
-        return buffer.ToString();
+        return buffer.ToString().TrimEnd('\r', '\n');
     }
 }
