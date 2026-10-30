@@ -13,6 +13,19 @@ The Linux client is under active development. See the repository-level [PROGRESS
 - Apktool, Java, Android SDK build-tools and ADB integration
 - Linux-native application data and configuration paths
 
+## Build and test
+
+From the repository root:
+
+```bash
+dotnet restore linux/ApkEasyTool.Linux/ApkEasyTool.Linux.csproj
+dotnet build linux/ApkEasyTool.Linux/ApkEasyTool.Linux.csproj --configuration Release
+dotnet test linux/ApkEasyTool.Linux.Tests/ApkEasyTool.Linux.Tests.csproj --configuration Release
+dotnet publish linux/ApkEasyTool.Linux/ApkEasyTool.Linux.csproj --configuration Release --runtime linux-x64 --self-contained false --output artifacts/linux-x64
+```
+
+The test project currently covers process argument preservation, non-zero exit codes and cancellation on Linux. The GitHub Actions workflow runs the same test project before publishing.
+
 ## Attribution
 
 APK Easy Tool was originally created by [Evildog1](https://github.com/evildog1). This project is a continuation and Linux port. Preserve original attribution when redistributing.
