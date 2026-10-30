@@ -26,6 +26,21 @@ dotnet publish linux/ApkEasyTool.Linux/ApkEasyTool.Linux.csproj --configuration 
 
 The test project currently covers process argument preservation, non-zero exit codes and cancellation on Linux. The GitHub Actions workflow runs the same test project before publishing.
 
+## Install on Debian / Ubuntu
+
+Download the `apk-easy-tool-linux-x64-deb` artifact from the GitHub Actions run and install it:
+
+```bash
+sudo apt update
+sudo apt install ./apk-easy-tool_0.1.0_amd64.deb
+```
+
+The Debian package declares APT dependencies for Java, Apktool, ADB and
+`android-sdk-build-tools` (which provides `aapt`, `apksigner` and
+`zipalign`). It also declares the Linux desktop runtime libraries. APT
+installs these dependencies during package installation. See
+[package installation notes](package/README.md).
+
 ## Attribution
 
 APK Easy Tool was originally created by [Evildog1](https://github.com/evildog1). This project is a continuation and Linux port. Preserve original attribution when redistributing.
