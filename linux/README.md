@@ -41,6 +41,34 @@ The Debian package declares APT dependencies for Java, Apktool, ADB and
 installs these dependencies during package installation. See
 [package installation notes](package/README.md).
 
+
+## Automatic workspace folders
+
+On first launch, APK Easy Tool creates this workspace automatically:
+
+```text
+~/Documents/APKEasyTool/
+├── Compile/
+├── Decompiles/
+├── Rebuild/
+├── Signed/
+├── ZipAligned/
+├── Extracted/
+├── Frameworks/
+├── Logs/
+└── Temp/
+```
+
+Operations use these locations automatically:
+
+- Decode APK → `Decompiles/<apk-name>/`
+- Build/rebuild APK → `Rebuild/<project-name>.apk`
+- Sign APK → `Signed/<apk-name>-signed.apk`
+- Zipalign APK → `ZipAligned/<apk-name>-aligned.apk`
+- Extract `.apks` bundle → `Extracted/<bundle-name>/`
+
+The selected source APK and custom project folder remain wherever you choose them. You no longer need to select an output folder or output filename for these operations. The `Compile`, `Frameworks`, `Logs`, and `Temp` directories are also created ready for the next workflow additions.
+
 ## Attribution
 
 APK Easy Tool was originally created by [Evildog1](https://github.com/evildog1). This project is a continuation and Linux port. Preserve original attribution when redistributing.
