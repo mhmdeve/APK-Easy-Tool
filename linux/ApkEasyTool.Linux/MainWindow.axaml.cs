@@ -65,8 +65,6 @@ public partial class MainWindow : Window
         try
         {
             var result = await operation(_operationCancellation!.Token, progress);
-            if (!string.IsNullOrWhiteSpace(result.StandardOutput)) Append(result.StandardOutput.TrimEnd());
-            if (!string.IsNullOrWhiteSpace(result.StandardError)) Append(result.StandardError.TrimEnd());
             var status = result.Success ? "Completed" : "Failed";
             Append(result.Success ? $"Completed successfully ({result.Duration.TotalSeconds:F1}s)." : $"Failed with exit code {result.ExitCode}.");
             SetStatus(status);

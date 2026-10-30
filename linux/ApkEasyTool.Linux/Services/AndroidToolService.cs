@@ -65,10 +65,33 @@ public sealed class AndroidToolService(CommandRunner runner, ToolLocator locator
         if (!File.Exists(bundlePath)) throw new FileNotFoundException("Bundle file not found.", bundlePath);
         if (!string.Equals(Path.GetExtension(bundlePath), ".apks", StringComparison.OrdinalIgnoreCase))
             throw new ArgumentException("Expected an .apks bundle.", nameof(bundlePath));
+
         cancellationToken.ThrowIfCancellationRequested();
         if (Directory.Exists(outputDirectory)) Directory.Delete(outputDirectory, recursive: true);
         Directory.CreateDirectory(outputDirectory);
-        await Task.Run(() => ZipFile.ExtractToDirectory(bundlePath, outputDirectory, overwriteFiles: true), cancellationToken);
+
+        var fullOutputDirectory = Path.GetFullPath(outputDirectory);
+        var root = fullOutputDirectory + Path.DirectorySeparatorChar;
+        using var archive = ZipFile.OpenRead(bundlePath);
+        foreach (var entry in archive.Entries)
+        {
+            cancellationToken.ThrowIfCancellationRequested();
+            var destination = Path.GetFullPath(Path.Combine(fullOutputDirectory, entry.FullName));
+            if (!destination.StartsWith(root, StringComparison.Ordinal) &&
+                !string.Equals(destination, fullOutputDirectory, StringComparison.Ordinal))
+                throw new InvalidDataException($"Bundle entry attempts to write outside the extraction folder: {entry.FullName}");
+
+            if (string.IsNullOrEmpty(entry.Name))
+            {
+                Directory.CreateDirectory(destination);
+                continue;
+            }
+
+            Directory.CreateDirectory(Path.GetDirectoryName(destination)!);
+            await using var source = entry.Open();
+            await using var target = new FileStream(destination, FileMode.Create, FileAccess.Write, FileShare.None, 81920, useAsync: true);
+            await source.CopyToAsync(target, 81920, cancellationToken);
+        }
     }
 
     public async Task<CommandResult> GetApkInformationAsync(string apkPath, string aapt = "aapt", CancellationToken cancellationToken = default, IProgress<string>? output = null)

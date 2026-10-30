@@ -43,10 +43,24 @@ public sealed class CommandRunner
             if (!process.Start())
                 throw new InvalidOperationException($"Could not start process: {executable}");
 
-            var stdoutTask = ReadStreamAsync(process.StandardOutput, "OUT", output, cancellationToken);
-            var stderrTask = ReadStreamAsync(process.StandardError, "ERR", output, cancellationToken);
-            await process.WaitForExitAsync(cancellationToken);
+            using var cancellationRegistration = cancellationToken.Register(() =>
+            {
+                try
+                {
+                    if (!process.HasExited)
+                        process.Kill(entireProcessTree: true);
+                }
+                catch
+                {
+                    // The process may have exited between the check and Kill.
+                }
+            });
+
+            var stdoutTask = ReadStreamAsync(process.StandardOutput, "OUT", output);
+            var stderrTask = ReadStreamAsync(process.StandardError, "ERR", output);
+            await process.WaitForExitAsync();
             var streams = await Task.WhenAll(stdoutTask, stderrTask);
+            cancellationToken.ThrowIfCancellationRequested();
             timer.Stop();
 
             return new CommandResult(executable, args, process.ExitCode, streams[0], streams[1], timer.Elapsed);
@@ -70,11 +84,10 @@ public sealed class CommandRunner
     private static async Task<string> ReadStreamAsync(
         StreamReader reader,
         string label,
-        IProgress<string>? output,
-        CancellationToken cancellationToken)
+        IProgress<string>? output)
     {
         var buffer = new StringBuilder();
-        while (await reader.ReadLineAsync(cancellationToken) is { } line)
+        while (await reader.ReadLineAsync() is { } line)
         {
             buffer.AppendLine(line);
             output?.Report($"{label}: {line}");

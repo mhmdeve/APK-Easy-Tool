@@ -76,3 +76,14 @@ APK Easy Tool was originally created by [Evildog1](https://github.com/evildog1).
 ## Disclaimer
 
 Use the tool only for applications you own or are authorized to inspect, modify, test or distribute.
+
+
+## User interface and appearance
+
+The Linux app follows the desktop's default theme when **System** is selected. You can override it with **Light** or **Dark** from the Appearance selector in the header. During an operation, the Activity panel streams tool output, shows the current state and displays an indeterminate progress bar. Use **Cancel operation** to terminate a running external tool; other workflow actions are disabled until it finishes.
+
+The progress bar is intentionally indeterminate because Apktool, ADB, apksigner and zipalign do not expose a consistent machine-readable percentage for all operations. The app does not invent percentage values.
+
+## CI trigger
+
+The Linux build workflow is manual-only. Open **Actions → Build Linux APK Easy Tool → Run workflow** and select the `linux` branch when you want to build and test. Commits and pull requests do not start this workflow automatically.
