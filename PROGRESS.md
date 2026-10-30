@@ -30,12 +30,23 @@ Proposed implementation:
 ### Phase 0 — Branch and handoff
 - [x] Create `linux` branch.
 - [x] Add this progress/handoff document.
-- [ ] Add Linux project and architecture.
-- [ ] Add shared command runner and tool detection.
-- [ ] Implement core APK workflows.
-- [ ] Build Avalonia UI.
-- [ ] Add automated Linux CI and distributable package.
+- [x] Add initial Avalonia Linux project and architecture skeleton (not yet build-verified).
+- [x] Add initial argument-safe process runner and PATH-based tool discovery.
+- [x] Add initial Apktool decode/build and ADB install service methods; signing/alignment and remaining workflows are still pending.
+- [ ] Wire the initial Avalonia window to working file pickers and workflow actions.
+- [x] Add initial Ubuntu GitHub Actions build/publish workflow (CI run still pending).
 - [ ] Test on a real Linux desktop environment.
+
+## Phase 1 — Initial Linux project scaffold (commit `e7105272b77a8734db8ad10c49aafacda6fd98ab`)
+
+- [x] Add isolated Avalonia desktop project under `linux/ApkEasyTool.Linux`.
+- [x] Add initial navigation/workspace/log window layout.
+- [x] Add `CommandRunner` based on `ProcessStartInfo.ArgumentList`, asynchronous output capture and cancellation.
+- [x] Add Linux-aware executable lookup for Java, ADB, Apktool and Android build-tools.
+- [x] Add first APK workflow service methods: Apktool decode/build and ADB install.
+- [x] Add Ubuntu GitHub Actions restore/build/publish artifact workflow.
+- [ ] Compile and execute the UI on Ubuntu; restore/build result has not yet been observed.
+- [ ] Add unit tests and UI wiring.
 
 ## Important compatibility notes
 
@@ -69,4 +80,4 @@ Proposed implementation:
 
 **Branch:** `linux`  
 **Baseline:** `master` at `19bb5104122a6fe33780c9223bbda04ab1606e45`  
-**Status:** Branch and handoff created; Linux implementation not yet started.
+**Status:** Linux scaffold and initial command/workflow layer committed; build verification and full feature implementation remain.
