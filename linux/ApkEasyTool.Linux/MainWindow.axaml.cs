@@ -14,7 +14,7 @@ public partial class MainWindow : Window
     {
         InitializeComponent();
         LinuxPaths.EnsureDirectories();
-        Append("Ready. Install Java, Apktool and Android SDK build-tools, then select an APK.");
+        Append("Ready. Select an APK. The Debian package installs Java, Apktool, ADB and Android SDK build-tools through APT.");
     }
 
     private void Append(string message)
