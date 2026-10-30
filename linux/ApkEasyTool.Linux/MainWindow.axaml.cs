@@ -140,12 +140,11 @@ public partial class MainWindow : Window
     {
         var bundle = await PickFileAsync("Select APKs bundle", "*.apks");
         if (bundle is null) return;
-        var output = await PickFolderAsync("Choose extraction folder");
-        if (output is null) return;
+        var output = Path.Combine(LinuxPaths.ExtractedDirectory, Path.GetFileNameWithoutExtension(bundle));
         Append("\n--- Extract .apks bundle ---");
         try
         {
-            await _tools.ExtractBundleAsync(bundle, Path.Combine(output, Path.GetFileNameWithoutExtension(bundle)));
+            await _tools.ExtractBundleAsync(bundle, output);
             Append("Bundle extracted successfully.");
         }
         catch (Exception ex) { Append("ERROR: " + ex.Message); }
