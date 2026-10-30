@@ -14,7 +14,8 @@ public partial class MainWindow : Window
     {
         InitializeComponent();
         LinuxPaths.EnsureDirectories();
-        Append("Ready. Select an APK. The Debian package installs Java, Apktool, ADB and Android SDK build-tools through APT.");
+        Append("Ready. Workspace: " + LinuxPaths.WorkingDirectory);
+        Append("Folders for Decompiles, Compile, Rebuild, Signed, ZipAligned, Extracted, Frameworks, Logs and Temp were created automatically.");
     }
 
     private void Append(string message)
@@ -60,17 +61,6 @@ public partial class MainWindow : Window
         return folders.Count == 0 ? null : folders[0].Path.LocalPath;
     }
 
-    private async Task<string?> PickSaveFileAsync(string title, string suggestedName)
-    {
-        var file = await StorageProvider.SaveFilePickerAsync(new FilePickerSaveOptions
-        {
-            Title = title,
-            SuggestedFileName = suggestedName,
-            FileTypeChoices = [new FilePickerFileType("APK package") { Patterns = ["*.apk"] }]
-        });
-        return file?.Path.LocalPath;
-    }
-
     private async void ChooseApk_Click(object? sender, RoutedEventArgs e)
     {
         var path = await PickFileAsync("Select APK", "*.apk");
@@ -87,20 +77,20 @@ public partial class MainWindow : Window
     {
         var apk = ApkPathBox.Text;
         if (string.IsNullOrWhiteSpace(apk)) { Append("Select an APK first."); return; }
-        var output = await PickFolderAsync("Choose output folder for decoded project");
-        if (output is null) return;
         var name = Path.GetFileNameWithoutExtension(apk);
-        await RunOperationAsync("Decode APK", () => _tools.DecodeAsync(apk, Path.Combine(output, name)));
-        ProjectPathBox.Text = Path.Combine(output, name);
+        var projectDirectory = Path.Combine(LinuxPaths.DecompilesDirectory, name);
+        await RunOperationAsync("Decode APK", () => _tools.DecodeAsync(apk, projectDirectory));
+        ProjectPathBox.Text = projectDirectory;
     }
 
     private async void Build_Click(object? sender, RoutedEventArgs e)
     {
         var project = ProjectPathBox.Text;
         if (string.IsNullOrWhiteSpace(project)) { Append("Select an Apktool project first."); return; }
-        var output = await PickSaveFileAsync("Save rebuilt APK", "rebuilt.apk");
-        if (output is null) return;
+        var name = Path.GetFileName(project.TrimEnd(Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar));
+        var output = Path.Combine(LinuxPaths.RebuildDirectory, name + ".apk");
         await RunOperationAsync("Build APK", () => _tools.BuildAsync(project, output));
+        Append("Rebuilt APK destination: " + output);
     }
 
     private async void Sign_Click(object? sender, RoutedEventArgs e)
@@ -111,18 +101,18 @@ public partial class MainWindow : Window
         if (key is null) return;
         var cert = await PickFileAsync("Select PEM certificate", "*.pem");
         if (cert is null) return;
-        var output = await PickSaveFileAsync("Save signed APK", Path.GetFileNameWithoutExtension(apk) + "-signed.apk");
-        if (output is null) return;
+        var output = Path.Combine(LinuxPaths.SignedDirectory, Path.GetFileNameWithoutExtension(apk) + "-signed.apk");
         await RunOperationAsync("Sign APK", () => _tools.SignAsync(apk, output, key, cert));
+        Append("Signed APK destination: " + output);
     }
 
     private async void ZipAlign_Click(object? sender, RoutedEventArgs e)
     {
         var apk = ApkPathBox.Text;
         if (string.IsNullOrWhiteSpace(apk)) { Append("Select an APK first."); return; }
-        var output = await PickSaveFileAsync("Save zipaligned APK", Path.GetFileNameWithoutExtension(apk) + "-aligned.apk");
-        if (output is null) return;
+        var output = Path.Combine(LinuxPaths.ZipAlignedDirectory, Path.GetFileNameWithoutExtension(apk) + "-aligned.apk");
         await RunOperationAsync("Zipalign APK", () => _tools.ZipAlignAsync(apk, output));
+        Append("Zipaligned APK destination: " + output);
     }
 
     private async void VerifyAlignment_Click(object? sender, RoutedEventArgs e)
