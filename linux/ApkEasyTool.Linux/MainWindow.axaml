@@ -11,7 +11,7 @@
       </StackPanel>
       <StackPanel Grid.Column="1" Orientation="Horizontal" Spacing="8" VerticalAlignment="Center">
         <TextBlock Text="Appearance" VerticalAlignment="Center" Opacity="0.75"/>
-        <ComboBox x:Name="ThemeSelector" Width="132" SelectedIndex="0" SelectionChanged="ThemeSelector_SelectionChanged">
+        <ComboBox x:Name="ThemeSelector" Width="132" SelectedIndex="0">
           <ComboBoxItem Content="System"/>
           <ComboBoxItem Content="Light"/>
           <ComboBoxItem Content="Dark"/>

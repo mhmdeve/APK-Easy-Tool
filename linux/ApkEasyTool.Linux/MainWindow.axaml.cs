@@ -16,6 +16,12 @@ public partial class MainWindow : Window
     public MainWindow()
     {
         InitializeComponent();
+
+        // Attach after XAML initialization. Avalonia may raise SelectionChanged
+        // while the ComboBox is still being populated by InitializeComponent.
+        ThemeSelector.SelectionChanged += ThemeSelector_SelectionChanged;
+        ApplyTheme(ThemeSelector.SelectedIndex);
+
         LinuxPaths.EnsureDirectories();
         Append("Ready. Workspace: " + LinuxPaths.WorkingDirectory);
         Append("Folders for Decompiles, Compile, Rebuild, Signed, ZipAligned, Extracted, Frameworks, Logs and Temp are created automatically.");
@@ -211,13 +217,15 @@ public partial class MainWindow : Window
 
     private void ThemeSelector_SelectionChanged(object? sender, SelectionChangedEventArgs e)
     {
-        // Avalonia can raise SelectionChanged while InitializeComponent is still
-        // populating the XAML. The generated ThemeSelector field is not guaranteed
-        // to be assigned at that point, so use the event sender instead.
-        if (Application.Current is not { } app || sender is not ComboBox selector)
-            return;
+        if (sender is ComboBox selector)
+            ApplyTheme(selector.SelectedIndex);
+    }
 
-        app.RequestedThemeVariant = selector.SelectedIndex switch
+    private static void ApplyTheme(int selectedIndex)
+    {
+        if (Application.Current is not { } app) return;
+
+        app.RequestedThemeVariant = selectedIndex switch
         {
             1 => ThemeVariant.Light,
             2 => ThemeVariant.Dark,
