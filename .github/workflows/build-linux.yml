@@ -33,7 +33,13 @@ jobs:
         run: dotnet test linux/ApkEasyTool.Linux.Tests/ApkEasyTool.Linux.Tests.csproj --configuration Release
       - name: Publish Linux x64
         run: dotnet publish linux/ApkEasyTool.Linux/ApkEasyTool.Linux.csproj --configuration Release --runtime linux-x64 --self-contained true --output artifacts/linux-x64
+      - name: Build Debian package
+        run: bash linux/package/build-deb.sh artifacts/linux-x64 artifacts/deb
       - uses: actions/upload-artifact@v4
         with:
           name: apk-easy-tool-linux-x64
           path: artifacts/linux-x64/
+      - uses: actions/upload-artifact@v4
+        with:
+          name: apk-easy-tool-linux-x64-deb
+          path: artifacts/deb/*.deb
