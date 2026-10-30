@@ -1,3 +1,4 @@
+using Xunit;
 using ApkEasyTool.Linux.Services;
 
 namespace ApkEasyTool.Linux.Tests;
