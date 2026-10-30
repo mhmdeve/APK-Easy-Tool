@@ -34,7 +34,7 @@ Proposed implementation:
 - [x] Add initial argument-safe process runner and PATH-based tool discovery.
 - [x] Add initial Apktool decode/build and ADB install service methods; signing/alignment and remaining workflows are still pending.
 - [x] Wire Avalonia file/folder pickers and decode/build/sign/zipalign/verify/install/info/extract actions.
-- [x] Add initial Ubuntu GitHub Actions build/publish workflow (CI run still pending).
+- [x] Add Ubuntu GitHub Actions restore/build/publish workflow; initial Linux x64 publish run passed.
 - [ ] Test on a real Linux desktop environment.
 
 ## Phase 1 — Initial Linux project scaffold (commit `e7105272b77a8734db8ad10c49aafacda6fd98ab`)
@@ -45,7 +45,7 @@ Proposed implementation:
 - [x] Add Linux-aware executable lookup for Java, ADB, Apktool and Android build-tools.
 - [x] Add first APK workflow service methods: Apktool decode/build and ADB install.
 - [x] Add Ubuntu GitHub Actions restore/build/publish artifact workflow.
-- [ ] Compile and execute the UI on Ubuntu; restore/build result has not yet been observed.
+- [x] Compile and publish the Avalonia application on Ubuntu CI (run 41019820666, commit e221420). Runtime execution on a graphical Linux desktop is still pending.
 - [ ] Add unit tests; manual Linux UI testing remains pending.
 
 ## Phase 2 — Functional desktop workflows (in progress)
@@ -56,8 +56,17 @@ Proposed implementation:
 - [x] Connect zipalign and alignment verification.
 - [x] Connect ADB install, aapt badging metadata and .apks ZIP extraction.
 - [ ] Add keystore UI, configurable tool paths, operation cancellation and progress reporting.
-- [x] Run Ubuntu CI: restore succeeded; first build exposed an Avalonia XAML scrollbar-property error.
-- [x] Correct the XAML property to use ScrollViewer.VerticalScrollBarVisibility; a new CI run is required to confirm the fix.
+- [x] Run Ubuntu CI: restore, build, Linux x64 publish and artifact upload passed after the XAML fix.
+- [x] Correct the XAML property to use ScrollViewer.VerticalScrollBarVisibility; verified by successful Ubuntu CI run 41019820666.
+
+## Phase 3 — Process-runner tests and CI (in progress)
+
+- [x] Add linux/ApkEasyTool.Linux.Tests targeting .NET 8 with xUnit.
+- [x] Add tests for argument preservation with spaces, non-zero exit codes and cancellation/child-process termination.
+- [x] Add a CI test step before Linux publish.
+- [x] Document local restore/build/test/publish commands in linux/README.md.
+- [ ] Confirm the new test-enabled workflow run passes. Earlier successful run 41019820666 verified app build/publish only; it did not include the new test project.
+- [ ] Expand tests to cover tool discovery and APK workflow argument construction.
 
 ## Important compatibility notes
 
@@ -69,16 +78,15 @@ Proposed implementation:
 
 ## Next session — exact starting point
 
-1. Read this file first.
-2. Inspect `APKEasyTool/Utils`, `APKEasyTool/Classes`, `Resources`, and the remaining APK workflow classes to inventory command semantics and bundled tools.
-3. Inspect existing target framework, package versions, signing and APKtool compatibility behavior.
-4. Create a new directory (recommended: `linux/ApkEasyTool.Linux`) containing an Avalonia .NET project, keeping it isolated from the existing Windows solution.
-5. Implement a tested process runner using `ProcessStartInfo.ArgumentList`, asynchronous stdout/stderr capture, cancellation, exit-code handling and logging. Never construct shell command strings from user-provided paths.
-6. Implement tool discovery for Java, Apktool versions, ADB, zipalign, apksigner and aapt/aapt2.
-7. Add unit tests for executable discovery, quoting/arguments, output capture and error handling.
-8. Implement workflows one by one, beginning with decode and rebuild, then signing/alignment and ADB installation.
-9. Add Linux GitHub Actions build/test workflow and package artifact.
-10. Update this document after each coherent milestone and commit each independently.
+1. Read this file and inspect the latest test-enabled GitHub Actions run.
+2. If CI fails, inspect its test/build logs and fix the issue in a focused commit; do not assume the tests passed.
+3. Run the Linux app in a real graphical desktop and manually validate file pickers, logs, decode/build, signing, alignment, metadata and ADB install against installed Android tools.
+4. Improve ToolLocator: avoid spawning /usr/bin/test for every PATH candidate; add unit coverage and support configurable absolute tool paths.
+5. Add keystore signing controls to the UI and validate PKCS12/JKS workflows using apksigner.
+6. Add user-visible operation cancellation/progress and prevent overlapping operations from corrupting the selected workspace.
+7. Inventory and port remaining Windows workflows: framework management, Smali/Baksmali, APK/AAB/APKS handling and preferences.
+8. Add packaging (AppImage or .deb) after runtime behavior is stable; keep Linux packaging separate from the Windows release pipeline.
+9. Update this document after each coherent milestone and commit each independently.
 
 ## Commit discipline
 
@@ -91,4 +99,4 @@ Proposed implementation:
 
 **Branch:** `linux`  
 **Baseline:** `master` at `19bb5104122a6fe33780c9223bbda04ab1606e45`  
-**Status:** Linux desktop actions and initial APK workflows are wired. First Ubuntu CI exposed and received a XAML fix; verify the follow-up run. Tests, keystore UI, cancellation/progress and feature parity remain.
+**Status:** Avalonia Linux x64 app builds and publishes successfully in Ubuntu CI. Process-runner tests and a test-enabled CI workflow have been added; their current run still needs verification. No real desktop runtime test has been completed. Keystore UI, configurable tools, operation progress/cancellation, packaging and feature parity remain.
