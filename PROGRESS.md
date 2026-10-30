@@ -33,7 +33,7 @@ Proposed implementation:
 - [x] Add initial Avalonia Linux project and architecture skeleton (not yet build-verified).
 - [x] Add initial argument-safe process runner and PATH-based tool discovery.
 - [x] Add initial Apktool decode/build and ADB install service methods; signing/alignment and remaining workflows are still pending.
-- [ ] Wire the initial Avalonia window to working file pickers and workflow actions.
+- [x] Wire Avalonia file/folder pickers and decode/build/sign/zipalign/verify/install/info/extract actions.
 - [x] Add initial Ubuntu GitHub Actions build/publish workflow (CI run still pending).
 - [ ] Test on a real Linux desktop environment.
 
@@ -46,7 +46,17 @@ Proposed implementation:
 - [x] Add first APK workflow service methods: Apktool decode/build and ADB install.
 - [x] Add Ubuntu GitHub Actions restore/build/publish artifact workflow.
 - [ ] Compile and execute the UI on Ubuntu; restore/build result has not yet been observed.
-- [ ] Add unit tests and UI wiring.
+- [ ] Add unit tests; manual Linux UI testing remains pending.
+
+## Phase 2 — Functional desktop workflows (in progress)
+
+- [x] Replace placeholder window actions with native Avalonia storage-provider file and folder pickers.
+- [x] Connect decode and build to Apktool.
+- [x] Connect PK8/PEM APK signing to apksigner.
+- [x] Connect zipalign and alignment verification.
+- [x] Connect ADB install, aapt badging metadata and .apks ZIP extraction.
+- [ ] Add keystore UI, configurable tool paths, operation cancellation and progress reporting.
+- [ ] Verify Avalonia build and XAML compilation on Ubuntu CI; no run has been observed yet.
 
 ## Important compatibility notes
 
@@ -80,4 +90,4 @@ Proposed implementation:
 
 **Branch:** `linux`  
 **Baseline:** `master` at `19bb5104122a6fe33780c9223bbda04ab1606e45`  
-**Status:** Linux scaffold and initial command/workflow layer committed; build verification and full feature implementation remain.
+**Status:** Linux desktop actions and initial APK workflows are wired; build verification, tests, keystore UI, cancellation/progress and feature parity remain.
