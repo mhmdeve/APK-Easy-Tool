@@ -56,7 +56,8 @@ Proposed implementation:
 - [x] Connect zipalign and alignment verification.
 - [x] Connect ADB install, aapt badging metadata and .apks ZIP extraction.
 - [ ] Add keystore UI, configurable tool paths, operation cancellation and progress reporting.
-- [ ] Verify Avalonia build and XAML compilation on Ubuntu CI; no run has been observed yet.
+- [x] Run Ubuntu CI: restore succeeded; first build exposed an Avalonia XAML scrollbar-property error.
+- [x] Correct the XAML property to use ScrollViewer.VerticalScrollBarVisibility; a new CI run is required to confirm the fix.
 
 ## Important compatibility notes
 
@@ -90,4 +91,4 @@ Proposed implementation:
 
 **Branch:** `linux`  
 **Baseline:** `master` at `19bb5104122a6fe33780c9223bbda04ab1606e45`  
-**Status:** Linux desktop actions and initial APK workflows are wired; build verification, tests, keystore UI, cancellation/progress and feature parity remain.
+**Status:** Linux desktop actions and initial APK workflows are wired. First Ubuntu CI exposed and received a XAML fix; verify the follow-up run. Tests, keystore UI, cancellation/progress and feature parity remain.
