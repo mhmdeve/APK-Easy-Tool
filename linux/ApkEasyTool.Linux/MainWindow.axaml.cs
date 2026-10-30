@@ -211,8 +211,13 @@ public partial class MainWindow : Window
 
     private void ThemeSelector_SelectionChanged(object? sender, SelectionChangedEventArgs e)
     {
-        if (Application.Current is null) return;
-        Application.Current.RequestedThemeVariant = ThemeSelector.SelectedIndex switch
+        // Avalonia can raise SelectionChanged while InitializeComponent is still
+        // populating the XAML. The generated ThemeSelector field is not guaranteed
+        // to be assigned at that point, so use the event sender instead.
+        if (Application.Current is not { } app || sender is not ComboBox selector)
+            return;
+
+        app.RequestedThemeVariant = selector.SelectedIndex switch
         {
             1 => ThemeVariant.Light,
             2 => ThemeVariant.Dark,
