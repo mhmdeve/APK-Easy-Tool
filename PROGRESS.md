@@ -35,7 +35,7 @@ Proposed implementation:
 - [x] Add initial Apktool decode/build and ADB install service methods; signing/alignment and remaining workflows are still pending.
 - [x] Wire Avalonia file/folder pickers and decode/build/sign/zipalign/verify/install/info/extract actions.
 - [x] Add Ubuntu GitHub Actions restore/build/publish workflow; initial Linux x64 publish run passed.
-- [ ] Test on a real Linux desktop environment.
+- [x] Create the automatic ~/Documents/APKEasyTool workspace and standard operation folders at startup.\n- [ ] Test on a real Linux desktop environment.
 
 ## Phase 1 — Initial Linux project scaffold (commit `e7105272b77a8734db8ad10c49aafacda6fd98ab`)
 
@@ -99,4 +99,4 @@ Proposed implementation:
 
 **Branch:** `linux`  
 **Baseline:** `master` at `19bb5104122a6fe33780c9223bbda04ab1606e45`  
-**Status:** Avalonia Linux x64 app builds and publishes successfully in Ubuntu CI. Process-runner tests and a test-enabled CI workflow have been added. The first test run found a missing Xunit import, fixed in commit 6f1a14c; verify the rerun. User runtime test exposed that the framework-dependent artifact required .NET 8; publish now uses self-contained mode (commit 832f5bf). No real desktop runtime test has been completed. Keystore UI, configurable tools, operation progress/cancellation and feature parity remain. Debian packaging has been added to CI but awaits CI and real-system installation validation.
+**Status:** Avalonia Linux x64 app builds and publishes successfully in Ubuntu CI. Process-runner tests and a test-enabled CI workflow have been added. The first test run found a missing Xunit import, fixed in commit 6f1a14c; verify the rerun. User runtime test exposed that the framework-dependent artifact required .NET 8; publish now uses self-contained mode (commit 832f5bf). No real desktop runtime test has been completed. Keystore UI, configurable tools, operation progress/cancellation and feature parity remain. Debian packaging has been added to CI but awaits CI and real-system installation validation. The app now creates ~/Documents/APKEasyTool with Compile, Decompiles, Rebuild, Signed, ZipAligned, Extracted, Frameworks, Logs and Temp subfolders; decode/build/sign/zipalign/APKS extraction use their default folders automatically.
