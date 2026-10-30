@@ -65,7 +65,7 @@ Proposed implementation:
 - [x] Add tests for argument preservation with spaces, non-zero exit codes and cancellation/child-process termination.
 - [x] Add a CI test step before Linux publish.
 - [x] Document local restore/build/test/publish commands in linux/README.md.
-- [ ] Confirm the new test-enabled workflow run passes. Earlier successful run 41019820666 verified app build/publish only; it did not include the new test project.
+- [ ] Confirm the test-enabled workflow passes. First test-enabled run 41020104176 built the app but failed compiling tests because the test file omitted using Xunit; fixed in commit 6f1a14c, awaiting CI verification.
 - [ ] Expand tests to cover tool discovery and APK workflow argument construction.
 
 ## Important compatibility notes
@@ -99,4 +99,4 @@ Proposed implementation:
 
 **Branch:** `linux`  
 **Baseline:** `master` at `19bb5104122a6fe33780c9223bbda04ab1606e45`  
-**Status:** Avalonia Linux x64 app builds and publishes successfully in Ubuntu CI. Process-runner tests and a test-enabled CI workflow have been added; their current run still needs verification. No real desktop runtime test has been completed. Keystore UI, configurable tools, operation progress/cancellation, packaging and feature parity remain.
+**Status:** Avalonia Linux x64 app builds and publishes successfully in Ubuntu CI. Process-runner tests and a test-enabled CI workflow have been added. The first test run found a missing Xunit import, fixed in commit 6f1a14c; verify the rerun. No real desktop runtime test has been completed. Keystore UI, configurable tools, operation progress/cancellation, packaging and feature parity remain.
