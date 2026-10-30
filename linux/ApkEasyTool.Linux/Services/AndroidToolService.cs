@@ -5,35 +5,35 @@ namespace ApkEasyTool.Linux.Services;
 /// <summary>APK operations implemented using host-installed Android command-line tools.</summary>
 public sealed class AndroidToolService(CommandRunner runner, ToolLocator locator)
 {
-    public async Task<CommandResult> DecodeAsync(string apkPath, string outputDirectory, string apktool = "apktool", CancellationToken cancellationToken = default)
+    public async Task<CommandResult> DecodeAsync(string apkPath, string outputDirectory, string apktool = "apktool", CancellationToken cancellationToken = default, IProgress<string>? output = null)
     {
         EnsureApk(apkPath);
         Directory.CreateDirectory(outputDirectory);
-        return await RunToolAsync(apktool, ["d", "-f", apkPath, "-o", outputDirectory], cancellationToken);
+        return await RunToolAsync(apktool, ["d", "-f", apkPath, "-o", outputDirectory], cancellationToken, output);
     }
 
-    public async Task<CommandResult> BuildAsync(string projectDirectory, string outputApk, string apktool = "apktool", CancellationToken cancellationToken = default)
+    public async Task<CommandResult> BuildAsync(string projectDirectory, string outputApk, string apktool = "apktool", CancellationToken cancellationToken = default, IProgress<string>? output = null)
     {
         if (!Directory.Exists(projectDirectory))
             throw new DirectoryNotFoundException($"Project directory not found: {projectDirectory}");
         var outputDirectory = Path.GetDirectoryName(Path.GetFullPath(outputApk));
         if (!string.IsNullOrEmpty(outputDirectory)) Directory.CreateDirectory(outputDirectory);
-        return await RunToolAsync(apktool, ["b", projectDirectory, "-o", outputApk], cancellationToken);
+        return await RunToolAsync(apktool, ["b", projectDirectory, "-o", outputApk], cancellationToken, output);
     }
 
-    public async Task<CommandResult> InstallAsync(string apkPath, string adb = "adb", CancellationToken cancellationToken = default)
+    public async Task<CommandResult> InstallAsync(string apkPath, string adb = "adb", CancellationToken cancellationToken = default, IProgress<string>? output = null)
     {
         EnsureApk(apkPath);
-        return await RunToolAsync(adb, ["install", "-r", apkPath], cancellationToken);
+        return await RunToolAsync(adb, ["install", "-r", apkPath], cancellationToken, output);
     }
 
-    public async Task<CommandResult> SignAsync(string apkPath, string outputApk, string keyFile, string certificateFile, string apksigner = "apksigner", CancellationToken cancellationToken = default)
+    public async Task<CommandResult> SignAsync(string apkPath, string outputApk, string keyFile, string certificateFile, string apksigner = "apksigner", CancellationToken cancellationToken = default, IProgress<string>? output = null)
     {
         EnsureApk(apkPath);
         if (!File.Exists(keyFile)) throw new FileNotFoundException("PK8 private key not found.", keyFile);
         if (!File.Exists(certificateFile)) throw new FileNotFoundException("PEM certificate not found.", certificateFile);
         Directory.CreateDirectory(Path.GetDirectoryName(Path.GetFullPath(outputApk))!);
-        return await RunToolAsync(apksigner, ["sign", "--key", keyFile, "--cert", certificateFile, "--out", outputApk, apkPath], cancellationToken);
+        return await RunToolAsync(apksigner, ["sign", "--key", keyFile, "--cert", certificateFile, "--out", outputApk, apkPath], cancellationToken, output);
     }
 
     public async Task<CommandResult> SignWithKeystoreAsync(string apkPath, string outputApk, string keystore, string alias, string? storePassword = null, string apksigner = "apksigner", CancellationToken cancellationToken = default)
@@ -47,17 +47,17 @@ public sealed class AndroidToolService(CommandRunner runner, ToolLocator locator
         return await RunToolAsync(apksigner, args, cancellationToken);
     }
 
-    public async Task<CommandResult> ZipAlignAsync(string apkPath, string outputApk, string zipalign = "zipalign", CancellationToken cancellationToken = default)
+    public async Task<CommandResult> ZipAlignAsync(string apkPath, string outputApk, string zipalign = "zipalign", CancellationToken cancellationToken = default, IProgress<string>? output = null)
     {
         EnsureApk(apkPath);
         Directory.CreateDirectory(Path.GetDirectoryName(Path.GetFullPath(outputApk))!);
-        return await RunToolAsync(zipalign, ["-f", "4", apkPath, outputApk], cancellationToken);
+        return await RunToolAsync(zipalign, ["-f", "4", apkPath, outputApk], cancellationToken, output);
     }
 
-    public async Task<CommandResult> VerifyAlignmentAsync(string apkPath, string zipalign = "zipalign", CancellationToken cancellationToken = default)
+    public async Task<CommandResult> VerifyAlignmentAsync(string apkPath, string zipalign = "zipalign", CancellationToken cancellationToken = default, IProgress<string>? output = null)
     {
         EnsureApk(apkPath);
-        return await RunToolAsync(zipalign, ["-c", "-v", "4", apkPath], cancellationToken);
+        return await RunToolAsync(zipalign, ["-c", "-v", "4", apkPath], cancellationToken, output);
     }
 
     public async Task ExtractBundleAsync(string bundlePath, string outputDirectory, CancellationToken cancellationToken = default)
@@ -71,16 +71,16 @@ public sealed class AndroidToolService(CommandRunner runner, ToolLocator locator
         await Task.Run(() => ZipFile.ExtractToDirectory(bundlePath, outputDirectory, overwriteFiles: true), cancellationToken);
     }
 
-    public async Task<CommandResult> GetApkInformationAsync(string apkPath, string aapt = "aapt", CancellationToken cancellationToken = default)
+    public async Task<CommandResult> GetApkInformationAsync(string apkPath, string aapt = "aapt", CancellationToken cancellationToken = default, IProgress<string>? output = null)
     {
         EnsureApk(apkPath);
-        return await RunToolAsync(aapt, ["dump", "badging", apkPath], cancellationToken);
+        return await RunToolAsync(aapt, ["dump", "badging", apkPath], cancellationToken, output);
     }
 
-    private async Task<CommandResult> RunToolAsync(string executable, IEnumerable<string> args, CancellationToken token)
+    private async Task<CommandResult> RunToolAsync(string executable, IEnumerable<string> args, CancellationToken token, IProgress<string>? output = null)
     {
         var resolved = locator.Find(executable) ?? throw new FileNotFoundException($"Required tool '{executable}' was not found in PATH. Install it or configure its full path.");
-        return await runner.RunAsync(resolved, args, cancellationToken: token);
+        return await runner.RunAsync(resolved, args, cancellationToken: token, output: output);
     }
 
     private static void EnsureApk(string path)

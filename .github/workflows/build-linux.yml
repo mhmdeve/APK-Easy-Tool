@@ -1,16 +1,6 @@
 name: Build Linux APK Easy Tool
 
 on:
-  push:
-    branches: [linux]
-    paths:
-      - "linux/**"
-      - ".github/workflows/build-linux.yml"
-  pull_request:
-    branches: [linux]
-    paths:
-      - "linux/**"
-      - ".github/workflows/build-linux.yml"
   workflow_dispatch:
 
 permissions:
