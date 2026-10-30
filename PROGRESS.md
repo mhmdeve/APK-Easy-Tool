@@ -99,4 +99,4 @@ Proposed implementation:
 
 **Branch:** `linux`  
 **Baseline:** `master` at `19bb5104122a6fe33780c9223bbda04ab1606e45`  
-**Status:** Avalonia Linux x64 app builds and publishes successfully in Ubuntu CI. Process-runner tests and a test-enabled CI workflow have been added. The first test run found a missing Xunit import, fixed in commit 6f1a14c; verify the rerun. No real desktop runtime test has been completed. Keystore UI, configurable tools, operation progress/cancellation, packaging and feature parity remain.
+**Status:** Avalonia Linux x64 app builds and publishes successfully in Ubuntu CI. Process-runner tests and a test-enabled CI workflow have been added. The first test run found a missing Xunit import, fixed in commit 6f1a14c; verify the rerun. User runtime test exposed that the framework-dependent artifact required .NET 8; publish now uses self-contained mode (commit 832f5bf). No real desktop runtime test has been completed. Keystore UI, configurable tools, operation progress/cancellation, packaging and feature parity remain.
